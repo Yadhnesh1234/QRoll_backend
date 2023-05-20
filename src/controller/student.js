@@ -2,6 +2,8 @@ const Student=require('../models/student')
 const Classroom=require('../models/classroom')
 const Semister=require('../models/semister')
 const bcrypt = require('bcrypt');
+const jwt=require('jsonwebtoken')
+const SECRET_KEY="USER_SIGNIN"
 const getStudDetails=async (req,res,next)=>{
    var data;
    try{
@@ -19,6 +21,10 @@ const saveStudDetails=async (req,res,next)=>{
     var {name,department,semister,classroom,mobileNum,rollNo,email,password}=req.body;
     var data
     try{
+     var userExist=await Student.findOne({email})
+     if(userExist)
+        return  res.status(400).json({msg:'UserName Already Exist'});
+
      classroom=(classroom.toUpperCase()).trim()
      classroom=await Classroom.findOne({name:classroom});
      semister=await Semister.findOne({semNo:semister});
@@ -37,11 +43,10 @@ const saveStudDetails=async (req,res,next)=>{
     if(!data){
      return res.status(500).json({message:"Internal server error"})
     }
-    return res.status(200).json({status:"Data Saved Successfully"})
  }
 
  const findStudent=async(req,res,next)=>{
-    const id=req.params.id 
+    const id=req.userId
     var data;
     try{
      data=await Student.findById(id)
@@ -55,7 +60,7 @@ const saveStudDetails=async (req,res,next)=>{
 
  }
  const updateStudDetails=async(req,res,next)=>{
-    const id=req.params.id
+    const id=req.userId
     var {name,department,semister,classroom,mobileNum,rollNo,email,password} =req.body;
     let user
     classroom=classroom.toUpperCase().trim()
@@ -76,7 +81,7 @@ const saveStudDetails=async (req,res,next)=>{
  }
  
  const deleteStudent=async (req,res,next)=>{
-    const id=req.params.id
+   const id=req.userId
     let user
     try{
       user= await Student.findByIdAndRemove(id)
@@ -93,15 +98,16 @@ const saveStudDetails=async (req,res,next)=>{
     var {email,password}=req.body
   //  username=username.trim()
   password=password.trim()
-   var data;
+   var existingUser;
    try{
-    data=await Student.findOne({email})
-    if(!data)
+      existingUser=await Student.findOne({email})
+    if(!existingUser)
       return  res.status(404).send('User not found!! Check the username again');
-    const passwordMatch = await bcrypt.compare(password,data.password);
+    const passwordMatch = await bcrypt.compare(password,existingUser.password);
     if(!passwordMatch)
       return  res.status(404).json({msg:'Invalid Password'});
-    return res.status(200).json({status:"Login Successful",data})
+   const token=jwt.sign({email:existingUser.email,userId:existingUser._id},SECRET_KEY)
+   return res.status(200).json({status:"Login Successful",existingUser,token})
    }catch(err){
     next(err)
    }

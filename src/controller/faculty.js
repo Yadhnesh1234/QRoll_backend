@@ -1,7 +1,8 @@
 const Faculty=require('../models/faculty.js')
 const bcrypt = require('bcrypt');
 const Subject = require('../models/subject')
-
+const jwt=require('jsonwebtoken')
+const SECRET_KEY="USER_SIGNIN"
 const getFacultyDetails=async (req,res,next)=>{
    var data;
    try{
@@ -26,7 +27,7 @@ const getFacultyDetails=async (req,res,next)=>{
    return res.status(200).json({status:"Success",data})
 }
 const getTodaysTimetable=async(req,res,next)=>{
-     const id=req.params.id
+     const id=req.userId
      var {day}=req.body;
      let user
      try{
@@ -77,7 +78,7 @@ const saveFacultyDetails=async (req,res,next)=>{
     return res.status(200).json({status:"Data Saved Successfully"})
  }
 const setTimeTable=async (req,res,next)=>{
-    var id=req.params.id
+    var id=req.userId
     var {timeTable}=req.body;
     let user
     try{
@@ -93,10 +94,21 @@ const setTimeTable=async (req,res,next)=>{
 }
 
 const getfacultydetail=async(req,res,next)=>{
-  const id=req.params.id
+  const id=req.userId
   var faculty;
   try{
-      faculty=await Faculty.findById(id)
+      faculty=await Faculty.findById(id).populate({
+        path:'timeTable',
+        populate: [
+          {
+            path: 'schedule',
+            populate:[
+              'subject',
+              'classroom'
+            ]
+          }
+        ]
+      })
   }catch(err){
     next(err)
   }
@@ -117,13 +129,14 @@ const facultylogin=async(req,res,next)=>{
       const passwordMatch = await bcrypt.compare(password,data.password);
       if(!passwordMatch)
         return  res.status(404).json({msg:'Invalid Password'});
-      return res.status(200).json({status:"Login Successful",data})
+      const token=jwt.sign({email:data.email,userId:data._id},SECRET_KEY)
+      return res.status(200).json({status:"Login Successful",data,token})
      }catch(err){
       next(err)
      }
 }
 const deleteFaculty=async (req,res,next)=>{
-  const id=req.params.id
+  const id=req.userId
   let user
   try{
     user= await Faculty.findByIdAndRemove(id)
