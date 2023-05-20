@@ -22,7 +22,7 @@ const initAttendance = async (req, res, next) => {
   });
 
   await lecture.save();
-  res.status(201).json({ message: "Lecture initialized", lecture,lectureURL:`http://localhost:5000/api/v1/mark-attendance/${lecture._id}` });
+  res.status(201).json({ message: "Lecture initialized", lecture,lectureURL:`https://q-roll-backend.onrender.com/api/v1/mark-attendance/${lecture._id}` });
 };
 
 const markStudentAttendace = async (req, res, next) => {
