@@ -174,8 +174,39 @@ const totalLectureOfSubject = async (req, res, next) => {
     toatlLecCount: allLectureOfSubject.length,
   });
 };
+
+const getUpdatedListOfStudents= async (req,res,next)=>{
+  var {lectureId}=req.body;
+  var totalStudentPresentCount=0
+  try{
+    var StudentList=await Lecture.findById(lectureId)
+    .populate('classroom','name')
+    .populate('facultyId','name')
+    .populate('allStudents.studentId','name')
+    .populate('subjectId','subject')
+    console.log(StudentList)
+
+    StudentList.allStudents.map((val)=>{
+        if(val.isPresent==true)
+          totalStudentPresentCount+=1
+    })
+  }catch(err){
+    next(err)
+  }
+  if (!StudentList)
+  return res.status(500).json({ message: "Internal server error" });
+  return res.status(200).json({
+    msg: "Success",
+    StudentList,
+    totalStudentInLecture: StudentList.allStudents.length,
+    totalStudentPresentCount,
+    percentage:(totalStudentPresentCount/StudentList.allStudents.length)*100
+  });
+} 
+
 module.exports = {
   getClassAttendance,
   getStudentAttendance,
   totalLectureOfSubject,
+  getUpdatedListOfStudents
 };
