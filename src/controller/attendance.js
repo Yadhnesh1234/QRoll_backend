@@ -234,7 +234,9 @@ const totalLectureOfSubject = async (req, res, next) => {
     allLectureOfSubject = await Lecture.find({
       classroom: classroomId,
       subjectId: subjectId,
-    });
+    }).populate('subjectId','subject')
+      .populate('classroom','name')
+      .populate('facultyId','name');
   } catch (err) {
     next(err);
   }
