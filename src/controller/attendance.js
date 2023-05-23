@@ -80,6 +80,80 @@ const getClassAttendance = async (req, res, next) => {
   }
 };
 
+
+const getClassSubjectAttendance = async (req, res, next) => {
+  var { classroomId,subjectId } = req.body;
+  try {
+    var students = await Student.find({classroom:classroomId});
+    var subjectDetail = await Subject.findById(subjectId)
+    var StudentSubjectArray=[]
+    var studentAttendanceArray = [];
+  for(var index=0;index<students.length;index++){
+    StudentSubjectArray=[]
+      var  lectureDetail= await Lecture.aggregate([
+          {
+            $match: {
+              $expr: {
+                $eq: ["$classroom", { $toObjectId: classroomId }],
+                $eq: [
+                  "$subjectId",
+                  { $toObjectId: subjectId },
+                ],
+              },
+            },
+          },
+          {
+            $set: {
+              student: {
+                $filter: {
+                  input: "$allStudents",
+                  as: "item",
+                  cond: {
+                    $and: [
+                      { $eq: ["$$item.studentId", { $toObjectId: students[index]._id }] },
+                      { $eq: ["$$item.isPresent", true] }
+                    ],
+                  },
+                },
+              },
+            },
+          },
+          {
+            $project: {
+              allStudents: 0
+            },
+          },
+        ])
+      var totalSumOfLecture = 0;
+      var totalLectureConducted = lectureDetail.length;
+      for (var j = 0; j < lectureDetail.length; j++) {
+        totalSumOfLecture += lectureDetail[j].student.length;
+      }
+      StudentSubjectArray.push({
+        // ...StudentObject,
+        subjectName: subjectDetail.subject,
+        subjectId: subjectDetail._id,
+        totalLectureOfsubject: totalLectureConducted,
+        studentAttendedLecture: totalSumOfLecture,
+        totalPercentageAttendance:
+          totalLectureConducted == 0
+            ? 0
+            : (totalSumOfLecture / totalLectureConducted) * 100,
+      });
+    
+    studentAttendanceArray.push({  
+      studentName:students[index].name,
+      studentRollNo:students[index].rollNo,
+      studentLectureDetails:StudentSubjectArray
+    });
+  }
+    res.json(studentAttendanceArray);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 const getStudentAttendance = async (req, res, next) => {
   var { classroomId, studentId } = req.body;
   try {
@@ -208,5 +282,6 @@ module.exports = {
   getClassAttendance,
   getStudentAttendance,
   totalLectureOfSubject,
-  getUpdatedListOfStudents
+  getUpdatedListOfStudents,
+  getClassSubjectAttendance
 };

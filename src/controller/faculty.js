@@ -2,22 +2,26 @@ const Faculty=require('../models/faculty.js')
 const bcrypt = require('bcrypt');
 const Subject = require('../models/subject')
 const jwt=require('jsonwebtoken')
+const nodemailer = require("nodemailer");
 const SECRET_KEY="USER_SIGNIN"
 const getFacultyDetails=async (req,res,next)=>{
    var data;
    try{
-    data=await Faculty.find({}).populate({
-      path:'timeTable',
-      populate: [
-        {
-          path: 'schedule',
-          populate:[
-            'subject',
-            'classroom'
-          ]
-        }
-      ]
-    })
+    data=await Faculty.find({})
+    .populate('timeTable.schedule.subject','subject')
+    .populate('timeTable.schedule.classroom','name')
+    // .populate({
+    //   path:'timeTable',
+    //   populate: [
+    //     {
+    //       path: 'schedule',
+    //       populate:[
+    //         'subject',
+    //         'classroom'
+    //       ]
+    //     }
+    //   ]
+    // })
    }catch(err){
     next(err)
    }
@@ -80,6 +84,31 @@ const saveFacultyDetails=async (req,res,next)=>{
     if(!data){
      return res.status(500).json({message:"Internal server error"})
     }
+    let testAccount = await nodemailer.createTestAccount();
+    // create reusable transporter object using the default SMTP transport
+   let transporter = await nodemailer.createTransport({
+    host: "smtp.ethereal.email",
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: 'lavada.rolfson@ethereal.email',
+      pass: 'Q9Yu5nh2hDdruKz7Wd'
+    },
+  });
+
+  let info = await transporter.sendMail({
+    from: '"Yadhnesh Gangurde" <gangurdeyadhnesh28@gmail.com>', // sender address
+    to: email ,// list of receivers
+    subject: "About successful Registration", // Subject line
+    text: "Hello faculty,", // plain text body
+    html: "<b>Your Regsitration request sent to admin successfully!!!!</b>", // html body
+  });
+
+  console.log("Message sent: %s", info.messageId);
+
+  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+
+
     return res.status(200).json({status:"Data Saved Successfully"})
  }
 const setTimeTable=async (req,res,next)=>{
@@ -93,6 +122,31 @@ const setTimeTable=async (req,res,next)=>{
     }
     if(!user)
     return res.status(500).json({message:"Internal server error"})
+
+    let testAccount = await nodemailer.createTestAccount();
+    // create reusable transporter object using the default SMTP transport
+   let transporter = await nodemailer.createTransport({
+    host: "smtp.ethereal.email",
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: 'lavada.rolfson@ethereal.email',
+      pass: 'Q9Yu5nh2hDdruKz7Wd'
+    },
+  });
+
+  let info = await transporter.sendMail({
+    from: '"Yadhnesh Gangurde" <gangurdeyadhnesh28@gmail.com>', // sender address
+    to: user.email, // list of receivers
+    subject: "About Timetable set", // Subject line
+    text: "Hello faculty,", // plain text body
+    html: "<b>Your TimeTable is set by admin!!!</b>", // html body
+  });
+
+  console.log("Message sent: %s", info.messageId);
+
+  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+
 
     return res.status(200).json({msg:"Time table set sucessfully"})  
 
