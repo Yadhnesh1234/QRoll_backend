@@ -2,8 +2,6 @@ const Lecture = require("../models/lecture");
 const student = require("../models/student");
 const { getClassStudents } = require("./classroom");
 
-var globalWifiList=[]
-var studentLeader=0
 //When teacher starts the attendance QR first init session
 const initAttendance = async (req, res, next) => {
   const { facultyId, subjectId, classroom} = req.body;

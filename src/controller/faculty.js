@@ -31,18 +31,23 @@ const getTodaysTimetable=async(req,res,next)=>{
      var {day}=req.body;
      let user
      try{
-     user= await Faculty.findById(id).populate({
-      path:'timeTable',
-      populate: [
-        {
-          path: 'schedule',
-          populate:[
-            'subject',
-            'classroom'
-          ]
-        }
-      ]
-    })
+     user= await Faculty.findById(id)
+     .populate('timeTable.schedule.subject','subject')
+     .populate('timeTable.schedule.classroom','name')
+    //  .populate({
+    //   path:'timeTable',
+    //   populate: [
+    //     {
+    //       path: 'schedule',
+    //       populate:[
+    //         'subject',
+    //         'classroom'
+    //       ]
+    //     }
+    //   ]
+    // })
+
+   
      schedule=user.timeTable
      var data=schedule.filter((val)=>{
         return val.day==day? val: false

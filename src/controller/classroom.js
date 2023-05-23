@@ -4,6 +4,7 @@ const getClassroomDetails=async (req,res,next)=>{
      var data;
      try{
         data=await  Classroom.find()
+        .populate('timetable.schedule.subject','subject')
      }catch(err){
           next(err)
      }
