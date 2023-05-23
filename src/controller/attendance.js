@@ -65,7 +65,7 @@ const getClassAttendance = async (req, res, next) => {
         totalPercentageAttendance:
           totalLectureConducted == 0
             ? 0
-            : (totalSumOfLecture / totalLectureConducted) * 100,
+            : parseInt((totalSumOfLecture / totalLectureConducted) * 100),
       });
     }
     studentAttendanceArray.push({  
@@ -138,7 +138,7 @@ const getClassSubjectAttendance = async (req, res, next) => {
         totalPercentageAttendance:
           totalLectureConducted == 0
             ? 0
-            : (totalSumOfLecture / totalLectureConducted) * 100,
+            : parseInt((totalSumOfLecture / totalLectureConducted) * 100),
       });
     
     studentAttendanceArray.push({  
@@ -217,7 +217,7 @@ const getStudentAttendance = async (req, res, next) => {
         totalPercentageAttendance:
           totalLectureConducted == 0
             ? 0
-            : (totalSumOfLecture / totalLectureConducted) * 100,
+            : parseInt((totalSumOfLecture / totalLectureConducted) * 100),
       };
       studentAttendanceArray.push(StudentObject);
     }
@@ -274,7 +274,7 @@ const getUpdatedListOfStudents= async (req,res,next)=>{
     StudentList,
     totalStudentInLecture: StudentList.allStudents.length,
     totalStudentPresentCount,
-    percentage:(totalStudentPresentCount/StudentList.allStudents.length)*100
+    percentage:parseInt((totalStudentPresentCount/StudentList.allStudents.length)*100)
   });
 } 
 
